@@ -26,7 +26,7 @@ Pin mapping table:
 |    P21    | SDA         |
 |    P22    | SCL         |
 ## Command List
-List all available commands for the RX characteristic.
+These are the all available commands for the RX characteristic.
 | Command | Description                  |
 | ------- | ---------------------------- |
 | `start` | Starts streaming sensor data |
