@@ -17,7 +17,7 @@ AX:<int> AY:<int> AZ:<int> GX:<int> GY:<int> GZ:<int>
 Workflow Summary\
 Client connects → sends “start” → ESP32 streams sensor data over BLE → client sends “stop” to end transmission.
 ## Connection Diagram
-Add a simple diagram showing I2C connections between ESP32 and MPU6050.\
+A simple diagram showing I2C connections between ESP32 and MPU6050 is below.\
 Pin mapping table:
 | ESP32 Pin | MPU6050 Pin |
 | --------- | ----------- |
