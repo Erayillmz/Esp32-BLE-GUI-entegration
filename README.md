@@ -6,8 +6,6 @@ Install all required packages with:
 ```cpp
 pip install -r requirements.txt
 ```
-\
-Windows:\
 BLE works out-of-the-box on Windows 10+ with bleak.\
 Ensure your Bluetooth adapter is enabled.\
 Run the application
@@ -20,9 +18,35 @@ Then connect to your ESP32 device via the Connect button in the GUI. Press reset
 - Arduino IDE
 - Pyqt5
 - USB (for power)
+## Data Format
+The data is taken from MPU6050 live data.
+```cpp
+AX:<int> AY:<int> AZ:<int> GX:<int> GY:<int> GZ:<int>
+```
 # Arduino IDE code
 Workflow Summary\
 Client connects → sends “start” → ESP32 streams sensor data over BLE → client sends “stop” to end transmission.
+## Connection Diagram
+Add a simple diagram showing I2C connections between ESP32 and MPU6050.\
+Pin mapping table:
+| ESP32 Pin | MPU6050 Pin |
+| --------- | ----------- |
+|   5V      | VCC         |
+|   GND     | GND         |
+|    P21    | SDA         |
+|    P22    | SCL         |
+## Command List
+List all available commands for the RX characteristic.
+| Command | Description                  |
+| ------- | ---------------------------- |
+| `start` | Starts streaming sensor data |
+| `stop`  | Stops streaming sensor data  |
+## Setup Instructions
+Open Arduino IDE\
+Install MPU6050 and ESP32 BLE Arduino libraries\
+Modify SERVICE_UUID, CHAR_RX_UUID, and CHAR_TX_UUID if necessary\
+Upload the code to ESP32\
+Connect via a BLE-capable device and send commands
 ## Required Libraries
 Uses Wire.h for I2C communication, MPU6050.h for sensor control, and several ESP32 BLE libraries (BLEDevice.h, BLEServer.h, BLEUtils.h, BLE2902.h) for wireless data transfer.
 ```cpp
@@ -34,8 +58,67 @@ Uses Wire.h for I2C communication, MPU6050.h for sensor control, and several ESP
 #include <BLE2902.h>           // Descriptor definition for Notify feature
 ```
 ## Starting I2C and BLE
+**RX Characteristic (Write)**\
+Purpose: Receives control commands from the BLE client.\
+Data Direction: Client → ESP32.\
+**TX Characteristic (Notify)**\
+Purpose: Sends live sensor data to the connected BLE client.\
+Data Direction: ESP32 → Client.
+```cpp
+void setup() {
+  Serial.begin(115200);         // Start serial monitor
+  Wire.begin();                 // Start I2C
+  mpu.initialize();             // Initialize MPU6050 
+  if (mpu.testConnection()) {
+    Serial.println("MPU6050 sensor is ready.");
+  } else {
+    Serial.println("MPU6050 connection failed!");
+  }
+  // BLE configuration
+  BLEDevice::init("ESP32_MPU6050");                 // Device name 
+  BLEServer *pServer = BLEDevice::createServer();   // Create BLE server
+  BLEService *pService = pServer->createService(SERVICE_UUID); // Create service
+  // RX characteristic: receives commands from the phone
+  BLECharacteristic *pRxCharacteristic = pService->createCharacteristic(
+    CHAR_RX_UUID,
+    BLECharacteristic::PROPERTY_WRITE
+  );
+  pRxCharacteristic->setCallbacks(new MyCallbacks()); // Handle incoming commands
+  // TX characteristic: sends sensor data
+  pTxCharacteristic = pService->createCharacteristic(
+    CHAR_TX_UUID,
+    BLECharacteristic::PROPERTY_NOTIFY
+  );
+  pTxCharacteristic->addDescriptor(new BLE2902()); // Required for Notify feature
+  pService->start();                        // Start the service
+  pServer->getAdvertising()->start();       // Start BLE advertising
+  Serial.println("BLE started.");
+void loop() {
+  // If streaming is enabled, read from sensor and send data
+  if (startStreaming) {
+    int16_t ax, ay, az, gx, gy, gz;
+
+    mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz); // Read raw data from MPU6050
+
+    // Format the data into a single string
+    String data = "AX:" + String(ax) + " AY:" + String(ay) + " AZ:" + String(az) +
+                  " GX:" + String(gx) + " GY:" + String(gy) + " GZ:" + String(gz);
+
+    Serial.println(data); // Output to serial monitor
+
+    pTxCharacteristic->setValue(data.c_str()); // Write data to the characteristic
+    pTxCharacteristic->notify();               // Send via BLE Notify
+
+    delay(200); // Send rate: 5Hz (200ms delay)
+```
+## Arduino IDE Output Example
+MPU6050 sensor is ready.
+BLE started.
+Streaming started.
+AX:512 AY:340 AZ:16384 GX:12 GY:-7 GZ:5
 
 # Python Code
+The Python script serves as a graphical BLE client for the ESP32 MPU6050 streaming system. Built with PyQt5 for the user interface and Matplotlib for real time data visualization, it connects to the ESP32 via the Bleak BLE library.
 ## Importing Necessary Libraries
 PyQt5 - GUI creation and event handling\
 Bleak - BLE device connection & data reading\
@@ -265,9 +348,12 @@ def on_sample(self, sample):
         self.log_file.write(f"{t},{ax},{ay},{az},{gx},{gy},{gz}\n")
 ```
 ## Future Improvements
--Multi-device support\
+**Multi-device support**\
 Allow simultaneous connections to multiple ESP32 devices, each with its own plot window or tab.\
--More filtering options\
+**More filtering options**\
 Implement additional filters such as low-pass, high-pass, Butterworth, or adaptive filters for different sensor applications.\
--Customizable plot styles\
+**Customizable plot styles**\
 Let users change colors, line styles, update frequency, and channel visibility directly from the GUI.
+
+# Output of The System
+
