@@ -355,5 +355,8 @@ Implement additional filters such as low-pass, high-pass, Butterworth, or adapti
 **Customizable plot styles**\
 Let users change colors, line styles, update frequency, and channel visibility directly from the GUI.
 
-# Output of The System
+## GUI Preview
+Below is an example of the real-time plot with Kalman filtering enabled:
+
+![ESP32 BLE IMU GUI Screenshot](GUIinterface.png)
 
