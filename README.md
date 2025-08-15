@@ -1,17 +1,6 @@
 # Esp32-BLE-GUI-entegration
 This Python-based desktop interface connects to an ESP32 via Bluetooth Low Energy, receives real-time sensor data, and visualizes it with PyQt5 and Matplotlib. It supports Kalman and moving average filters for noise reduction, CSV logging, and live control of data acquisition.
 
-## Installation and Setup
-Make sure you have Python 3.9 or later installed.\
-Install all required packages with: 
-```cpp
-pip install -r requirements.txt
-```
-BLE works out-of-the-box on Windows 10+ with bleak.\
-Ensure your Bluetooth adapter is enabled.\
-Run the application
-kalmanlıgraphgui.py\
-Then connect to your ESP32 device via the Connect button in the GUI. Press reset button in ESP32 everytime creating a new graph run.
 ## Hardware and Software
 - MPU6050
 - ESP 32S
@@ -123,7 +112,17 @@ The Python script serves as a graphical BLE client for the ESP32 MPU6050 streami
 ## Flowchart of the Code
 General flowchart of the code is below.
 ![BLE Code Flow](blecodeflow.png)
-
+## Installation and Setup
+Make sure you have Python 3.9 or later installed.\
+Install all required packages with: 
+```cpp
+pip install -r requirements.txt
+```
+BLE works out-of-the-box on Windows 10+ with bleak.\
+Ensure your Bluetooth adapter is enabled.\
+Run the application
+kalmanlıgraphgui.py\
+Then connect to your ESP32 device via the Connect button in the GUI. Press reset button in ESP32 everytime creating a new graph run.
 ## Importing Necessary Libraries
 PyQt5 - GUI creation and event handling\
 Bleak - BLE device connection & data reading\
